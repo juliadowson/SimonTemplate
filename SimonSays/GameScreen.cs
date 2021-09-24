@@ -9,51 +9,188 @@ using System.Windows.Forms;
 using System.Media;
 using System.Drawing.Drawing2D;
 using System.Threading;
+using System.Diagnostics;
+using System.IO;
+
 
 namespace SimonSays
 {
     public partial class GameScreen : UserControl
     {
-        //TODO: create guess variable to track what part of the pattern the user is at
+        int guessNumber = 0;
+        int guessIndex = 0;
+        int flashSpeed = 1000;
+        Random randNum = new Random();
 
+        //creates sounds for the buttons 
+        SoundPlayer blueSound = new SoundPlayer(Properties.Resources.blue);
+        SoundPlayer redSound = new SoundPlayer(Properties.Resources.red);
+        SoundPlayer yellowSound = new SoundPlayer(Properties.Resources.yellow);
+        SoundPlayer greenSound = new SoundPlayer(Properties.Resources.green);
 
         public GameScreen()
         {
-            InitializeComponent();
+            InitializeComponent();         
         }
 
         private void GameScreen_Load(object sender, EventArgs e)
         {
-            //TODO: clear the pattern list from form1, refresh, pause for a bit, and run ComputerTurn()
+            Form1.patternList.Clear();
+            ComputerTurn();
         }
 
         private void ComputerTurn()
         {
-            //TODO: get rand num between 0 and 4 (0, 1, 2, 3) and add to pattern list
+            //slowly speeds up the time between flashes, making it more difficult 
+            flashSpeed -= 20;
 
-            //TODO: create a for loop that shows each value in the pattern by lighting up approriate button
+            //creates a random number from 1-4, to create the pattern 
+            Form1.patternList.Add(randNum.Next(1,5));
 
-            //TODO: get guess index value back to 0
+            //flashes the buttons to show the playable pattern 
+            for (guessNumber = 0; guessNumber <  Form1.patternList.Count; guessNumber++)
+            {
+                Refresh();
+                Thread.Sleep(1000);
+                if (Form1.patternList[guessNumber] == 1)
+                {
+                    greenButton.BackColor = Color.GreenYellow;
+                    greenSound.Play();
+                    Refresh();
+                    Thread.Sleep(flashSpeed);
+                    greenButton.BackColor = Color.ForestGreen;
+                }
+                else if (Form1.patternList[guessNumber] == 2)
+                {
+                    redButton.BackColor = Color.Red;
+                    redSound.Play();
+                    Refresh();
+                    Thread.Sleep(flashSpeed);
+                    redButton.BackColor = Color.DarkRed;
+                }
+                else if (Form1.patternList[guessNumber] == 3)
+                {
+                    yellowButton.BackColor = Color.Gold;
+                    yellowSound.Play();
+                    Refresh();
+                    Thread.Sleep(flashSpeed);
+                    yellowButton.BackColor = Color.Goldenrod;
+                }
+                else if (Form1.patternList[guessNumber] == 4)
+                {
+                    blueButton.BackColor = Color.RoyalBlue;
+                    blueSound.Play();
+                    Refresh();
+                    Thread.Sleep(flashSpeed);
+                    blueButton.BackColor = Color.DarkBlue;
+                }
+            }
+                Refresh();
         }
 
         public void GameOver()
         {
-            //TODO: Play a game over sound
+            //plays error sound
+            SoundPlayer gameOverSound = new SoundPlayer(Properties.Resources.mistake);
+            gameOverSound.Play();
 
-            //TODO: close this screen and open the GameOverScreen
-
+            //opens the GameOver screen if the player messes up the pattern 
+            Form f = this.FindForm();
+            f.Controls.Remove(this);
+            GameOverScreen gos = new GameOverScreen();
+            f.Controls.Add(gos);
+            gos.Location = new Point((f.Width - gos.Width) / 2, (f.Height - gos.Height) / 2);
         }
 
-        //TODO: create one of these event methods for each button
+        #region button presses, in game
+        //flashes colour when pushced, and checks if player got the pattern right
+        //if not, end game
+
         private void greenButton_Click(object sender, EventArgs e)
         {
-            //TODO: is the value at current guess index equal to a green. If so:
-                // light up button, play sound, and pause
-                // set button colour back to original
-                // add one to the guess index
-                // check to see if we are at the end of the pattern. If so:
-                    // call ComputerTurn() method
-                // else call GameOver method
+           
+            if (Form1.patternList[guessIndex] == 1)
+                {
+                    greenButton.BackColor = Color.GreenYellow;
+                    greenSound.Play();
+                    Refresh();
+                    Thread.Sleep(800);
+                    greenButton.BackColor = Color.ForestGreen;
+
+                    guessIndex++;
+                }
+            else { GameOver(); }
+
+            if (guessIndex == Form1.patternList.Count())
+                {
+                    guessIndex = 0;
+                    ComputerTurn();
+                }   
         }
+
+        private void redButton_Click(object sender, EventArgs e)
+        {
+            if (Form1.patternList[guessIndex] == 2)
+            {
+                redButton.BackColor = Color.Red;
+                redSound.Play();
+                Refresh();
+                Thread.Sleep(800);
+                redButton.BackColor = Color.DarkRed;
+
+                guessIndex++;
+            }
+            else { GameOver(); }
+
+            if (guessIndex == Form1.patternList.Count())
+            {
+                guessIndex = 0;
+                ComputerTurn();
+
+            }
+        }
+
+        private void yellowButton_Click(object sender, EventArgs e)
+        {
+            if (Form1.patternList[guessIndex] == 3)
+            {
+                yellowButton.BackColor = Color.Gold;
+                yellowSound.Play();
+                Refresh();
+                Thread.Sleep(800);
+                yellowButton.BackColor = Color.Goldenrod;
+
+                guessIndex++;
+            } 
+            else { GameOver(); }
+
+            if (guessIndex == Form1.patternList.Count())
+            {
+                guessIndex = 0;
+                ComputerTurn();
+            }
+        }
+
+        private void blueButton_Click(object sender, EventArgs e)
+        {
+            if (Form1.patternList[guessIndex] == 4)
+            {
+                blueButton.BackColor = Color.RoyalBlue;
+                blueSound.Play();
+                Refresh();
+                Thread.Sleep(800);
+                blueButton.BackColor = Color.DarkBlue;
+
+                guessIndex++;
+            }
+            else { GameOver(); }
+
+            if (guessIndex == Form1.patternList.Count())
+            {
+                guessIndex = 0;
+                ComputerTurn();
+            }
+        }
+        #endregion
     }
 }
